@@ -6,7 +6,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class TaskListAdapter(private val titles:List<String>):
+class TaskListAdapter(
+    private val listTask:List<Task>,
+    private val openTaskDetailView: (task: Task) -> Unit
+):
     RecyclerView.Adapter<TaskListViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):TaskListViewHolder {
@@ -18,22 +21,29 @@ class TaskListAdapter(private val titles:List<String>):
     }
 
     override fun onBindViewHolder(holder: TaskListViewHolder, position: Int) {
-        val item = titles[position]
-        holder.bind(item)
+        val task = listTask[position]
+        holder.bind(task, openTaskDetailView)
     }
 
     override fun getItemCount(): Int {
-        return titles.size
+        return listTask.size
     }
 }
 
-class TaskListViewHolder(view: View): RecyclerView.ViewHolder(view) {
+class TaskListViewHolder(
+    private val view: View): RecyclerView.ViewHolder(view) {
 
-    val tvTaskTitle = view.findViewById<TextView>(R.id.tv_task_title)
-    val tvTaskDescription = view.findViewById<TextView>(R.id.tv_task_description)
+    private val tvTile= view.findViewById<TextView>(R.id.tv_task_title)
+    private val tvDesc= view.findViewById<TextView>(R.id.tv_task_description)
+    fun bind(
+        task: Task,
+        openTaskDetailView: (task: Task) -> Unit
+    ) {
+        tvTile.text = task.title
+        tvDesc.text = task.description
 
-    fun bind(title: String) {
-        tvTaskTitle.text = title
-        tvTaskDescription.text = title
+        view.setOnClickListener{
+            openTaskDetailView.invoke(task)
+        }
     }
 }
