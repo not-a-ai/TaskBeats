@@ -3,6 +3,8 @@ package com.comunidadedevspace.taskbeats
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import android.widget.LinearLayout
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.RecyclerView
@@ -10,13 +12,19 @@ import java.io.Serializable
 
 class MainActivity : AppCompatActivity() {
 
-     private val taskList = arrayListOf(
-        Task(1,"title1", "Desc1"),
-        Task(2,"title2", "Desc2"),
-        Task(3,"title3", "Desc3"),
+     private var taskList = arrayListOf(
+         Task(0,"Correr", "Fazer o treino A."),
+         Task(1,"Academia", "Malhar 1hora."),
+         Task(2,"Mercado", "Comprar frutas."),
+         Task(3,"Code", "Estudar Kotlin com o Roque."),
     )
+
+    private lateinit var ctnContent: LinearLayout
+
     //adapter
-    private val adapter: TaskListAdapter = TaskListAdapter(::openTaskDetailView)
+    private val adapter: TaskListAdapter by lazy {
+        TaskListAdapter(::openTaskDetailView)
+    }
 
     private val startForResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -26,8 +34,19 @@ class MainActivity : AppCompatActivity() {
             val taskAction = data?.getSerializableExtra(TASK_ACTION_RESULT) as TaskAction
             val task: Task = taskAction.task
 
-            taskList.remove(task)
-            adapter.submit(taskList)
+            val newList = arrayListOf<Task>()
+                .apply {
+                    addAll(taskList)
+                }
+
+            newList.remove(task)
+
+            if(newList.size == 0){
+                ctnContent.visibility = View.VISIBLE
+            }
+
+            adapter.submitList(newList)
+            taskList = newList
 
         }
     }
@@ -37,9 +56,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        ctnContent = findViewById(R.id.ctn_content)
 
-
-        adapter.submit(taskList)
+        adapter.submitList(taskList)
 
         //RecyclerView
         val rvTasks: RecyclerView = findViewById(R.id.rv_task_list)
@@ -52,6 +71,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 }
+
+
 
 sealed class ActionType : Serializable {
 
