@@ -8,6 +8,8 @@ import android.widget.LinearLayout
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import java.io.Serializable
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     //adapter
     private val adapter: TaskListAdapter by lazy {
-        TaskListAdapter(::openTaskDetailView)
+        TaskListAdapter(::onListItemClicked)
     }
 
     private val startForResult = registerForActivityResult(
@@ -34,19 +36,32 @@ class MainActivity : AppCompatActivity() {
             val taskAction = data?.getSerializableExtra(TASK_ACTION_RESULT) as TaskAction
             val task: Task = taskAction.task
 
-            val newList = arrayListOf<Task>()
-                .apply {
-                    addAll(taskList)
+            if(taskAction.actionType == ActionType.DELETE.name){
+                val newList = arrayListOf<Task>()
+                    .apply {
+                        addAll(taskList)
+                    }
+
+                newList.remove(task)
+
+                showMessage(ctnContent, "Item deleted ${task.title}")
+                if(newList.size == 0){
+                    ctnContent.visibility = View.VISIBLE
                 }
+                //atualiza a adapter
+                adapter.submitList(newList)
+                taskList = newList
+            } else if(taskAction.actionType == ActionType.CREATE.name){
+                val newList = arrayListOf<Task>()
+                    .apply {
+                        addAll(taskList)
+                    }
 
-            newList.remove(task)
-
-            if(newList.size == 0){
-                ctnContent.visibility = View.VISIBLE
+                newList.add(task)
+                //atualiza a adapter
+                adapter.submitList(newList)
+                taskList = newList
             }
-
-            adapter.submitList(newList)
-            taskList = newList
 
         }
     }
@@ -54,7 +69,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_task_list)
 
         ctnContent = findViewById(R.id.ctn_content)
 
@@ -63,28 +78,38 @@ class MainActivity : AppCompatActivity() {
         //RecyclerView
         val rvTasks: RecyclerView = findViewById(R.id.rv_task_list)
         rvTasks.adapter = adapter
+
+        val fab = findViewById<FloatingActionButton>(R.id.fabadd)
+        fab.setOnClickListener{
+            openTaskListDetail(null)
+        }
     }
-    private fun openTaskDetailView(task: Task){
+    private fun showMessage(view: View, message: String){
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+            .setAction("Action", null)
+            .show()
+    }
+    private fun onListItemClicked(task: Task){
+        openTaskListDetail(task)
+    }
+    private fun openTaskListDetail(task: Task? = null){
         val intent = TaskDetailActivity.start(this, task)
-
         startForResult.launch(intent)
-
     }
 }
 
 
 
-sealed class ActionType : Serializable {
-
-    object DELETE : ActionType()
-    object UPDATE : ActionType()
-    object CREATE : ActionType()
+enum class ActionType {
+    DELETE ,
+    UPDATE ,
+    CREATE ,
 
 }
 
 data class TaskAction(
     val task: Task,
-    val actionType: ActionType
+    val actionType: String
 ) : Serializable
 
 const val TASK_ACTION_RESULT = "TASK_ACTION_RESULT"
