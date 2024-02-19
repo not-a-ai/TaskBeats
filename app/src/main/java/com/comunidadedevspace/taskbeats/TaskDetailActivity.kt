@@ -51,7 +51,11 @@ class TaskDetailActivity : AppCompatActivity() {
             val dsc = edtDsc.text.toString()
 
             if(title.isNotEmpty() && dsc.isNotEmpty()){
-                addNewTask(title, dsc)
+                if (task == null) {
+                    addOrUpdateTask(0,title, dsc, ActionType.CREATE)
+                } else {
+                    addOrUpdateTask(task!!.id,title, dsc, ActionType.UPDATE)
+                }
             }else{
                 showMessage(it, "Fields are required")
             }
@@ -62,9 +66,14 @@ class TaskDetailActivity : AppCompatActivity() {
         //tvTitle.text = task?.title ?: "Adicione umma tarefa"
     }
 
-    private fun addNewTask (title: String, description: String) {
-        val newTask = Task( 0, title, description)
-        returnAction(newTask, ActionType.CREATE)
+    private fun addOrUpdateTask (
+        id: Int,
+        title: String,
+        description: String,
+        actionType: ActionType
+    ){
+        val task = Task(  id , title, description)
+        returnAction(task, actionType)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

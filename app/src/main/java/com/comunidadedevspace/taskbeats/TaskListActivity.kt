@@ -61,6 +61,20 @@ class MainActivity : AppCompatActivity() {
                 //atualiza a adapter
                 adapter.submitList(newList)
                 taskList = newList
+            } else if(taskAction.actionType == ActionType.UPDATE.name){
+                val tempEmptyList = arrayListOf<Task>()
+                taskList.forEach{
+                    if(it.id == task.id){
+                        val newItem = Task(it.id, task.title, task.description)
+                        tempEmptyList.add(newItem)
+                    } else {
+                        tempEmptyList.add(it)
+                    }
+                }
+                showMessage(ctnContent, "Item updated ${task.title}")
+                //atualiza a adapter
+                adapter.submitList(tempEmptyList)
+                taskList = tempEmptyList
             }
 
         }
